@@ -3,6 +3,8 @@
 # SUBNETS - public & private in each AZ
 # Gateway - Internet Gateway + NAT Gateway for each private subnet
 # Rout Tables - public to Internet Gateway & private to NAT Gateway on the same AZ
+# IAM - Describe EC2 Instances
+# IAM - Server Certificate
 ##################################################################################
 
 ##################################################################################
@@ -155,4 +157,64 @@ resource "aws_route_table_association" "private_route_table_association" {
   count          = length(aws_subnet.private_subnets[*].id)
   subnet_id      = aws_subnet.private_subnets[count.index].id
   route_table_id = aws_route_table.private_route_tables[count.index].id
+}
+
+##################################################################################
+# IAM - Describe EC2 Instances
+##################################################################################
+
+resource "aws_iam_role" "ec2_describe_instances_role" {
+  name = "ec2_describe_instances_role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy" "ec2_describe_instances_policy" {
+  name = "ec2_describe_instances_policy"
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "ec2:Describe*",
+          "sts:AssumeRole",
+          "eks:DescribeCluster"
+        ],
+        "Resource" : "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "ec2_describe_instances_policy_attachment" {
+  name       = "ec2_describe_instances_policy_attachment"
+  roles      = [resource.aws_iam_role.ec2_describe_instances_role.name]
+  policy_arn = resource.aws_iam_policy.ec2_describe_instances_policy.arn
+}
+
+resource "aws_iam_instance_profile" "ec2_describe_instances_instance_profile" {
+  name = "ec2_describe_instances_instance_profile"
+  role = resource.aws_iam_role.ec2_describe_instances_role.name
+}
+
+##################################################################################
+# IAM - Server Certificate
+##################################################################################
+
+resource "aws_iam_server_certificate" "self_signed_cert" {
+  name             = "${var.project_name}-self_signed_cert"
+  certificate_body = var.tls_self_signed_cert_pem_content
+  private_key      = var.cert_private_key_pem_content
 }
