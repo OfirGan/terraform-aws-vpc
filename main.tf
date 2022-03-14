@@ -25,7 +25,7 @@ resource "aws_vpc" "vpc" {
 # Route53 Zone
 ##################################################################################
 
-resource "aws_route53_zone" "route53_zone" {
+resource "aws_route53_zone" "kandula_route53_zone" {
   name          = "kandula"
   force_destroy = true
 
