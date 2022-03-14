@@ -1,5 +1,6 @@
 ##################################################################################
 # VPC - New VPC
+# Route53 Zone
 # SUBNETS - public & private in each AZ
 # Gateway - Internet Gateway + NAT Gateway for each private subnet
 # Rout Tables - public to Internet Gateway & private to NAT Gateway on the same AZ
@@ -17,6 +18,23 @@ resource "aws_vpc" "vpc" {
 
   tags = {
     Name = "${var.project_name}-vpc"
+  }
+}
+
+##################################################################################
+# Route53 Zone
+##################################################################################
+
+resource "aws_route53_zone" "route53_zone" {
+  name          = "kandula"
+  force_destroy = true
+
+  vpc {
+    vpc_id = aws_vpc.vpc.id
+  }
+
+  tags = {
+    Name = "${var.project_name}-route53-zone"
   }
 }
 

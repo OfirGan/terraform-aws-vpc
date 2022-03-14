@@ -7,6 +7,12 @@ output "vpc_id" {
   value       = aws_vpc.vpc.id
 }
 
+output "route53_zone_zone_id" {
+  description = "aws_route53_zone.zone_id"
+  value       = aws_route53_zone.kandula_route53_zone.zone_id
+
+}
+
 output "public_subnets_ids" {
   description = "Public Subnets IDs"
   value       = aws_subnet.public_subnets.*.id
